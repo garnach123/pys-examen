@@ -766,147 +766,114 @@
     const questions = [
       {
         id: 1,
-        text: '¿Qué crees que hace Contabilidad cada mes antes de "cerrar el mes"?',
+        text: '¿Qué es un "lead"?',
         options: [
-          { key: 'A', text: 'Apagar ordenadores' },
-          { key: 'B', text: 'Revisar facturas, conciliaciones y movimientos' },
-          { key: 'C', text: 'Celebrar un desayuno de equipo' },
-          { key: 'D', text: 'A y C son correctas' }
+          { key: 'A', text: 'Un compañero de ventas muy activo' },
+          { key: 'B', text: 'Una persona que ha mostrado interés y ha dejado sus datos de contacto' },
+          { key: 'C', text: 'Un cliente que ya ha comprado tres veces' },
+          { key: 'D', text: 'El cable del cargador del ordenador de Marketing' }
         ],
         correct: 'B'
       },
       {
         id: 2,
-        text: '¿Cuál es el objetivo principal de Marketing respecto al equipo de ventas?',
+        text: '¿Qué hace el equipo de Marketing con la web?',
         options: [
-          { key: 'A', text: 'Hacerles la competencia' },
-          { key: 'B', text: 'Pasarles llamadas sin avisar' },
-          { key: 'C', text: 'Atraer y cualificar contactos interesados para que el equipo comercial los convierta en clientes' },
-          { key: 'D', text: 'Analizar los argumentarios y ver cómo se pueden mejorar' }
-        ],
-        correct: 'C'
-      },
-      {
-        id: 3,
-        text: '¿Cuál es el horario del departamento de Back Office?',
-        options: [
-          { key: 'A', text: '09:00 a 18:00 hrs de L a V' },
-          { key: 'B', text: '24 horas, 7 días a la semana' },
-          { key: 'C', text: '08:00 a 20:00 hrs de L a V' },
-          { key: 'D', text: 'Siempre que Lydia y Patricia tengan encendido el teléfono' }
-        ],
-        correct: 'C'
-      },
-      {
-        id: 4,
-        text: '¿Qué departamento tramita más tipos de seguro?',
-        options: [
-          { key: 'A', text: 'Autos, porque es el que más compañías tiene' },
-          { key: 'B', text: 'Personales' },
-          { key: 'C', text: 'Depende de cuántos comerciales estén en oficina' },
-          { key: 'D', text: 'Diversos' }
-        ],
-        correct: 'D'
-      },
-      {
-        id: 5,
-        text: '¿Para qué sirve el email marketing en nuestra empresa?',
-        options: [
-          { key: 'A', text: 'Para llenar la bandeja de entrada de la gente y que nos odien' },
-          { key: 'B', text: 'Para nutrir a los leads, comunicar novedades y mantener el contacto con clientes y prospectos' },
-          { key: 'C', text: 'Para sustituir a las llamadas de ventas' },
-          { key: 'D', text: 'Solo para mandar la newsletter de navidad' }
+          { key: 'A', text: 'Nada, eso es cosa de IT' },
+          { key: 'B', text: 'La gestiona, actualiza y optimiza para atraer visitas y convertirlas en leads' },
+          { key: 'C', text: 'Solo cambia las fotos de vez en cuando' },
+          { key: 'D', text: 'La mira con cariño y espera que se actualice sola' }
         ],
         correct: 'B'
       },
       {
-        id: 6,
-        text: 'Cualquiera puede gestionar las redes sociales de una empresa. Total, todos tenemos Instagram.',
+        id: 3,
+        text: '¿Qué significa que un lead está "cualificado"?',
+        options: [
+          { key: 'A', text: 'Que tiene un máster' },
+          { key: 'B', text: 'Que ha pasado un filtro y tiene perfil para convertirse en cliente' },
+          { key: 'C', text: 'Que ya ha firmado el contrato' },
+          { key: 'D', text: 'Que ha abierto al menos un email' }
+        ],
+        correct: 'B'
+      },
+      {
+        id: 4,
+        text: 'Detrás de cada post hay una estrategia de contenido, un calendario editorial y un objetivo concreto.',
         options: [
           { key: 'A', text: 'Verdadero' },
           { key: 'B', text: 'Falso' }
         ],
-        correct: 'B'
-      },
-      {
-        id: 7,
-        text: '¿Qué significan las siglas P-Con?',
-        options: [
-          { key: 'A', text: 'Proyecto Concesionario' },
-          { key: 'B', text: 'Proyecto de Control' },
-          { key: 'C', text: 'Planificación y Contratación' },
-          { key: 'D', text: 'Programa de Consultoría' }
-        ],
         correct: 'A'
       },
       {
-        id: 8,
-        text: '¿Por qué es tan importante entregar las facturas a tiempo?',
+        id: 5,
+        text: '¿Qué herramienta permite actualmente tener una trazabilidad 360° de las comunicaciones con los clientes?',
         options: [
-          { key: 'A', text: 'Para que cuadre el cierre mensual' },
-          { key: 'B', text: 'Para evitar sanciones' },
-          { key: 'C', text: 'Porque contabilidad "ama" las prisas' },
-          { key: 'D', text: 'A y B son correctas' }
-        ],
-        correct: 'D'
-      },
-      {
-        id: 9,
-        text: '¿Una vez que ya tienes la formación inicial obligatoria tienes que hacer formación continua cada año?',
-        options: [
-          { key: 'A', text: 'Lo más conveniente es hacer formación cada año y las horas que cada uno estime oportunas' },
-          { key: 'B', text: 'Tenemos que hacer 15 horas' },
-          { key: 'C', text: 'Tenemos que hacer 25 horas' },
-          { key: 'D', text: 'No es necesaria hacer formación continua todos los años' }
+          { key: 'A', text: 'Excel' },
+          { key: 'B', text: 'Outlook' },
+          { key: 'C', text: 'Salesforce' },
+          { key: 'D', text: 'Word' }
         ],
         correct: 'C'
       },
       {
-        id: 10,
-        text: '¿Cómo se llaman los compañeros que dan soporte cuando tienes problemas con el equipo?',
+        id: 6,
+        text: '¿En qué momento del ciclo de vida del cliente interviene más el departamento de Atención al Cliente?',
         options: [
-          { key: 'A', text: 'No tenemos dpto. especializado, hay que escribir a Nieves' },
-          { key: 'B', text: 'Iván y Hugo' },
-          { key: 'C', text: 'Se encarga Gloria' },
-          { key: 'D', text: 'Hay que mandar email a averias@proyectosyseguros.es' }
+          { key: 'A', text: 'Solo en la contratación' },
+          { key: 'B', text: 'Solo en los siniestros' },
+          { key: 'C', text: 'Durante toda la vida de la póliza' },
+          { key: 'D', text: 'Solo al dar de baja la póliza' }
+        ],
+        correct: 'C'
+      },
+      {
+        id: 7,
+        text: '¿Qué ocurre muchas veces gracias a una buena gestión de Atención al Cliente?',
+        options: [
+          { key: 'A', text: 'Se evita la baja de una póliza' },
+          { key: 'B', text: 'Se detecta una oportunidad comercial' },
+          { key: 'C', text: 'Se reduce una reclamación' },
+          { key: 'D', text: 'Todas las anteriores' }
+        ],
+        correct: 'D'
+      },
+      {
+        id: 8,
+        text: '¿Cuál es uno de los principales objetivos del departamento de Atención al Cliente?',
+        options: [
+          { key: 'A', text: 'Vender nuevos seguros' },
+          { key: 'B', text: 'Resolver incidencias y garantizar la satisfacción del cliente' },
+          { key: 'C', text: 'Diseñar campañas publicitarias' },
+          { key: 'D', text: 'Gestionar redes sociales' }
+        ],
+        correct: 'B'
+      },
+      {
+        id: 9,
+        text: 'La prima total incluye…',
+        options: [
+          { key: 'A', text: 'Solo la prima neta' },
+          { key: 'B', text: 'Prima neta + impuestos y recargos' },
+          { key: 'C', text: 'Solo impuestos' },
+          { key: 'D', text: 'Solo gastos de administración' }
+        ],
+        correct: 'B'
+      },
+      {
+        id: 10,
+        text: 'El departamento de administración trabaja principalmente con…',
+        options: [
+          { key: 'A', text: 'Documentación interna' },
+          { key: 'B', text: 'Documentación oficial de compañías y clientes' },
+          { key: 'C', text: 'Publicidad' },
+          { key: 'D', text: 'Redes sociales' }
         ],
         correct: 'B'
       },
       {
         id: 11,
-        text: '¿Cómo se llama el programa de RRHH que garantiza tolerancia cero y prevención del mobbing entre compañeros?',
-        options: [
-          { key: 'A', text: 'Plan Renove' },
-          { key: 'B', text: 'Plan estratégico de igualdad entre empleados' },
-          { key: 'C', text: 'Proyecto del Empleado 2026' },
-          { key: 'D', text: 'Plan de Igualdad' }
-        ],
-        correct: 'D'
-      },
-      {
-        id: 12,
-        text: 'Resulta que has caído en una estafa virtual. ¿Qué seguro te cubriría ante este infortunio?',
-        options: [
-          { key: 'A', text: 'El seguro que te venden al comprar el teléfono' },
-          { key: 'B', text: 'Es una cobertura dentro del seguro de hogar' },
-          { key: 'C', text: 'Seguro de Protección Digital' },
-          { key: 'D', text: 'Ninguno, hay que escribir a CAU' }
-        ],
-        correct: 'C'
-      },
-      {
-        id: 13,
-        text: '¿Qué marcas pertenecen a Proyectos y Seguros?',
-        options: [
-          { key: 'A', text: 'Seguros Quiero' },
-          { key: 'B', text: 'Petk9' },
-          { key: 'C', text: 'Servibucal' },
-          { key: 'D', text: 'Todas las anteriores son correctas' }
-        ],
-        correct: 'D'
-      },
-      {
-        id: 14,
         text: '¿Cuál es la función principal del departamento de administración?',
         options: [
           { key: 'A', text: 'Captar nuevos clientes' },
@@ -917,15 +884,48 @@
         correct: 'B'
       },
       {
-        id: 15,
-        text: '¿Qué herramienta se utiliza normalmente para consultar la cartera de recibos?',
+        id: 12,
+        text: '¿Qué departamento puede tramitar un seguro para una persona que pasea perros?',
         options: [
-          { key: 'A', text: 'El ERP/Software interno' },
-          { key: 'B', text: 'Excel' },
-          { key: 'C', text: 'El CRM de ventas' },
-          { key: 'D', text: 'La web del banco' }
+          { key: 'A', text: 'Hogar' },
+          { key: 'B', text: 'Auto' },
+          { key: 'C', text: 'Diversos' },
+          { key: 'D', text: 'Ninguno, se contrata 100% online' }
         ],
-        correct: 'A'
+        correct: 'C'
+      },
+      {
+        id: 13,
+        text: '¿Qué departamento suele encargarse de los seguros de responsabilidad civil profesional y otros seguros especializados?',
+        options: [
+          { key: 'A', text: 'Auto' },
+          { key: 'B', text: 'Hogar' },
+          { key: 'C', text: 'Diversos' },
+          { key: 'D', text: 'Marketing' }
+        ],
+        correct: 'C'
+      },
+      {
+        id: 14,
+        text: '¿En qué consiste el departamento P-Con?',
+        options: [
+          { key: 'A', text: 'Es el departamento de atención al cliente' },
+          { key: 'B', text: 'Es el departamento de automoción, con agentes en concesionarios a nivel nacional comercializando seguros de forma presencial' },
+          { key: 'C', text: 'Es el departamento de marketing digital' },
+          { key: 'D', text: 'Es el departamento de siniestros' }
+        ],
+        correct: 'B'
+      },
+      {
+        id: 15,
+        text: '¿Qué documento NO es habitual en la gestión administrativa de una correduría?',
+        options: [
+          { key: 'A', text: 'Pólizas' },
+          { key: 'B', text: 'Suplementos' },
+          { key: 'C', text: 'Facturas de compañía' },
+          { key: 'D', text: 'Ofertas comerciales de proveedores de internet' }
+        ],
+        correct: 'D'
       }
     ];
 
