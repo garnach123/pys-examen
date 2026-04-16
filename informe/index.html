@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informe Resumen | Examen PyS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0a0f1e; --bg2: #111827; --card: rgba(17,24,39,0.75);
+      --gold: #c9a96e; --gold-light: #dbb882; --gold-glow: rgba(201,169,110,0.25);
+      --green: #4ade80; --red: #ef4444; --blue: #60a5fa; --purple: #a78bfa;
+      --text: #f1f5f9; --text2: #cbd5e1; --muted: #64748b;
+      --border: rgba(255,255,255,0.07); --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+
+    /* LOGIN */
+    .login-wrap {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem;
+    }
+    .login-box {
+      text-align: center; max-width: 380px; width: 100%;
+      animation: fadeUp 0.5s ease;
+    }
+    .login-box .emoji { font-size: 2.5rem; margin-bottom: 1rem; }
+    .login-box h2 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .login-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .login-input {
+      width: 100%; padding: 12px 16px; border-radius: 10px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      color: var(--text); font-size: 1rem; outline: none; margin-bottom: 1rem;
+      text-align: center; letter-spacing: 0.1em;
+    }
+    .login-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+    .login-btn {
+      width: 100%; padding: 12px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: #0a0f1e; font-weight: 700; cursor: pointer; font-size: 0.95rem;
+    }
+    .login-btn:hover { box-shadow: 0 4px 20px rgba(201,169,110,0.3); }
+    .login-error { color: var(--red); font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+
+    /* DASHBOARD */
+    .dashboard { display: none; }
+    .dashboard.active { display: block; }
+    .topbar {
+      padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border); background: rgba(10,15,30,0.9);
+      backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 10;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 600; }
+    .topbar h1 .accent { color: var(--gold); }
+    .topbar-right { display: flex; gap: 10px; flex-wrap: wrap; }
+    .top-btn {
+      padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04); color: var(--text2); font-size: 0.85rem;
+      cursor: pointer; font-weight: 500; transition: all 0.2s;
+    }
+    .top-btn:hover { background: rgba(255,255,255,0.08); }
+    .top-btn.gold { border-color: rgba(201,169,110,0.3); color: var(--gold); }
+    .top-btn.gold:hover { background: rgba(201,169,110,0.1); }
+    .top-btn.danger { border-color: rgba(239,68,68,0.3); color: var(--red); }
+    .top-btn.danger:hover { background: rgba(239,68,68,0.1); }
+
+    .content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+    .report-date {
+      color: var(--muted); font-size: 0.85rem; margin-bottom: 20px;
+    }
+
+    /* STATS */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .stat-card {
+      padding: 22px; border-radius: var(--radius);
+      background: var(--card); border: 1px solid var(--border);
+      backdrop-filter: blur(12px); position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    }
+    .stat-card.green::before { background: linear-gradient(90deg, var(--green), #86efac); }
+    .stat-card.blue::before { background: linear-gradient(90deg, var(--blue), #93c5fd); }
+    .stat-card.purple::before { background: linear-gradient(90deg, var(--purple), #c4b5fd); }
+    .stat-card .label { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .stat-card .value { font-size: 2rem; font-weight: 800; line-height: 1.1; }
+    .stat-card .sub { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+    .stat-card .value.gold { color: var(--gold); }
+    .stat-card .value.green { color: var(--green); }
+    .stat-card .value.blue { color: var(--blue); }
+    .stat-card .value.purple { color: var(--purple); }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size: 1.05rem; font-weight: 700; margin: 24px 0 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title .bar {
+      width: 4px; height: 18px; background: var(--gold); border-radius: 2px;
+    }
+    .section-sub { color: var(--muted); font-size: 0.85rem; font-weight: 400; margin-left: auto; }
+
+    /* TABLE */
+    .table-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: auto; margin-bottom: 24px;
+    }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1100px;
+    }
+    thead {
+      background: rgba(255,255,255,0.03);
+      position: sticky; top: 0; z-index: 1;
+    }
+    th {
+      padding: 12px 10px; text-align: left; font-weight: 600;
+      color: var(--text2); border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    th.q-col {
+      text-align: center; width: 36px; padding: 12px 4px;
+      cursor: help;
+    }
+    td {
+      padding: 11px 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text); vertical-align: middle;
+    }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    td.q-cell {
+      text-align: center; padding: 8px 4px; font-size: 1rem;
+    }
+    .q-ok { color: var(--green); font-weight: 700; }
+    .q-ko { color: var(--red); font-weight: 700; }
+    .q-na { color: var(--muted); opacity: 0.4; }
+    td.score {
+      text-align: center; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    td.score.pass { color: var(--green); }
+    td.score.fail { color: var(--red); }
+    td.duration { font-variant-numeric: tabular-nums; color: var(--text2); }
+    .dept-chip {
+      display: inline-block; padding: 3px 9px; border-radius: 6px;
+      background: rgba(201,169,110,0.08); color: var(--gold-light);
+      font-size: 0.75rem; font-weight: 500;
+      border: 1px solid rgba(201,169,110,0.15);
+    }
+    .status-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 5px;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-badge.pass { background: rgba(74,222,128,0.12); color: var(--green); }
+    .status-badge.fail { background: rgba(239,68,68,0.12); color: var(--red); }
+    .name-cell { font-weight: 600; }
+
+    /* EMPTY */
+    .empty {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .empty .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+    .empty h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text2); }
+
+    /* LOADING */
+    .loading {
+      text-align: center; padding: 80px 20px; color: var(--muted);
+    }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid rgba(201,169,110,0.15);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* DEPARTMENTS SECTION */
+    .dept-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .dept-card {
+      padding: 14px 16px; border-radius: 10px; background: var(--card);
+      border: 1px solid var(--border);
+    }
+    .dept-card .name { font-size: 0.85rem; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
+    .dept-card .metrics { display: flex; justify-content: space-between; align-items: baseline; }
+    .dept-card .avg { font-size: 1.5rem; font-weight: 800; color: var(--gold); }
+    .dept-card .count { font-size: 0.78rem; color: var(--muted); }
+    .dept-card .bar-bg {
+      margin-top: 8px; height: 4px; background: rgba(255,255,255,0.05);
+      border-radius: 2px; overflow: hidden;
+    }
+    .dept-card .bar-fill {
+      height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 2px; transition: width 0.6s ease;
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .content { padding: 16px; }
+      .stat-card .value { font-size: 1.5rem; }
+      .topbar h1 { font-size: 0.95rem; }
+      .top-btn { padding: 6px 12px; font-size: 0.8rem; }
+    }
+
+    /* PRINT */
+    @media print {
+      body { background: white; color: black; }
+      .topbar, .no-print { display: none !important; }
+      .content { max-width: 100%; padding: 0; }
+      .stat-card, .dept-card, .table-wrap {
+        background: white !important; border: 1px solid #ccc !important;
+        break-inside: avoid;
+      }
+      .stat-card .label { color: #666 !important; }
+      .stat-card .value { color: #111 !important; }
+      .stat-card .value.gold, .dept-card .avg { color: #a87d2a !important; }
+      .stat-card .value.green { color: #15803d !important; }
+      .stat-card .value.blue { color: #1d4ed8 !important; }
+      .stat-card .value.purple { color: #6d28d9 !important; }
+      th { color: #333 !important; }
+      td { color: #111 !important; border-color: #eee !important; }
+      .q-ok { color: #15803d !important; }
+      .q-ko { color: #b91c1c !important; }
+      .dept-chip { background: #f4efe4 !important; color: #7a5e2e !important; border-color: #e0d4b7 !important; }
+      .status-badge.pass { background: #dcfce7 !important; color: #15803d !important; }
+      .status-badge.fail { background: #fee2e2 !important; color: #b91c1c !important; }
+      table { font-size: 0.72rem; min-width: unset; }
+      th, td { padding: 6px 4px; }
+      @page { size: A3 landscape; margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="login-wrap" id="loginScreen">
+    <div class="login-box">
+      <div class="emoji">📊</div>
+      <h2>Informe Resumen</h2>
+      <p>Acceso protegido &middot; PYS Examen</p>
+      <input type="password" class="login-input" id="passInput" placeholder="PIN de acceso" autofocus>
+      <button class="login-btn" onclick="doLogin()">Ver informe</button>
+      <div class="login-error" id="loginError">PIN incorrecto</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboard">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1>Informe <span class="accent">Resumen</span> &middot; Examen PyS</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="top-btn" onclick="loadData()">&#x21bb; Actualizar</button>
+        <button class="top-btn gold" onclick="window.print()">&#x1F5A8; Imprimir / PDF</button>
+        <button class="top-btn" onclick="exportCSV()">&#x2B07; Exportar CSV</button>
+        <button class="top-btn danger" onclick="logout()">Salir</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="report-date" id="reportDate"></div>
+
+      <!-- KPI CARDS -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="label">Participantes</div>
+          <div class="value gold" id="kpiTotal">—</div>
+          <div class="sub" id="kpiTotalSub">&nbsp;</div>
+        </div>
+        <div class="stat-card green">
+          <div class="label">Aprobados</div>
+          <div class="value green" id="kpiPass">—</div>
+          <div class="sub" id="kpiPassSub">&nbsp;</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="label">Nota media</div>
+          <div class="value blue" id="kpiAvg">—</div>
+          <div class="sub" id="kpiAvgSub">sobre 15</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="label">Duración media</div>
+          <div class="value purple" id="kpiDur">—</div>
+          <div class="sub">minutos</div>
+        </div>
+      </div>
+
+      <!-- DEPARTMENTS BREAKDOWN -->
+      <div class="section-title">
+        <span class="bar"></span>
+        Nota media por departamento
+        <span class="section-sub" id="deptSubtitle"></span>
+      </div>
+      <div class="dept-grid" id="deptGrid"></div>
+
+      <!-- DETAIL TABLE -->
+      <div class="section-title">
+        <span class="bar"></span>
+        Detalle de respuestas por participante
+        <span class="section-sub" id="tableSubtitle"></span>
+      </div>
+      <div class="table-wrap" id="tableWrap">
+        <div class="loading">
+          <div class="spinner"></div>
+          Cargando resultados…
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://anwcebubrnpehtswgbfl.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFud2NlYnVicm5wZWh0c3dnYmZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNzMyODUsImV4cCI6MjA4Njk0OTI4NX0.OqlZHliY6S1kltM4gs2RwPP7T9iBKTiJT1t8oX1vVc0';
+    const PASS = 'exampys2026';
+    const PASS_THRESHOLD = 0.5;
+    const STORAGE_KEY = 'pys_informe_auth';
+
+    // 15 preguntas con su respuesta correcta (sincronizado con index.html)
+    const QUESTIONS = [
+      { id: 1,  correct: 'B', short: '¿Qué es un "lead"?' },
+      { id: 2,  correct: 'B', short: 'Marketing y la web' },
+      { id: 3,  correct: 'B', short: 'Lead cualificado' },
+      { id: 4,  correct: 'A', short: 'Estrategia detrás del post' },
+      { id: 5,  correct: 'C', short: 'Trazabilidad 360°' },
+      { id: 6,  correct: 'C', short: 'Atención al Cliente: momento' },
+      { id: 7,  correct: 'D', short: 'Buena gestión At. Cliente' },
+      { id: 8,  correct: 'B', short: 'Objetivo At. Cliente' },
+      { id: 9,  correct: 'B', short: 'Prima total incluye' },
+      { id: 10, correct: 'B', short: 'Admin trabaja con…' },
+      { id: 11, correct: 'B', short: 'Función Admin' },
+      { id: 12, correct: 'C', short: 'Seguro paseador perros' },
+      { id: 13, correct: 'C', short: 'RC profesional' },
+      { id: 14, correct: 'B', short: 'Departamento P-Con' },
+      { id: 15, correct: 'D', short: 'Documento NO habitual' }
+    ];
+
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let rows = [];
+
+    /* LOGIN */
+    function doLogin() {
+      const pin = document.getElementById('passInput').value.trim();
+      if (pin === PASS) {
+        sessionStorage.setItem(STORAGE_KEY, '1');
+        showDashboard();
+      } else {
+        const err = document.getElementById('loginError');
+        err.style.display = 'block';
+        document.getElementById('passInput').value = '';
+        setTimeout(() => err.style.display = 'none', 2500);
+      }
+    }
+    function logout() {
+      sessionStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+    function showDashboard() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').classList.add('active');
+      loadData();
+    }
+
+    document.getElementById('passInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    if (sessionStorage.getItem(STORAGE_KEY) === '1') showDashboard();
+
+    /* DATE */
+    function formatReportDate() {
+      const d = new Date();
+      return 'Generado el ' + d.toLocaleString('es-ES', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function formatDuration(seconds) {
+      if (!seconds && seconds !== 0) return '—';
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return m + ':' + String(s).padStart(2, '0');
+    }
+
+    /* LOAD */
+    async function loadData() {
+      document.getElementById('reportDate').textContent = formatReportDate();
+      const wrap = document.getElementById('tableWrap');
+      wrap.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando resultados…</div>';
+
+      try {
+        const { data, error } = await client
+          .from('pys_exam_submissions')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        rows = data || [];
+        render();
+      } catch (e) {
+        wrap.innerHTML = '<div class="empty"><div class="icon">&#x26A0;</div><h3>Error al cargar datos</h3><p>' + (e.message || 'Error de conexión') + '</p></div>';
+      }
+    }
+
+    /* RENDER */
+    function render() {
+      renderKPIs();
+      renderDepartments();
+      renderTable();
+    }
+
+    function renderKPIs() {
+      const total = rows.length;
+      const passed = rows.filter(r => r.aprobado).length;
+      const failed = total - passed;
+      const avgScore = total ? rows.reduce((s, r) => s + (r.puntuacion || 0), 0) / total : 0;
+      const avgDur = total
+        ? rows.reduce((s, r) => s + (r.tiempo_segundos || 0), 0) / total
+        : 0;
+      const passPct = total ? Math.round((passed / total) * 100) : 0;
+      const passMin = Math.floor(avgDur / 60);
+      const passSec = Math.round(avgDur % 60);
+
+      document.getElementById('kpiTotal').textContent = total;
+      document.getElementById('kpiTotalSub').textContent = total === 1 ? '1 examen completado' : total + ' exámenes completados';
+
+      document.getElementById('kpiPass').textContent = passed;
+      document.getElementById('kpiPassSub').textContent = total
+        ? passPct + '% aprobados · ' + failed + ' suspensos'
+        : '—';
+
+      document.getElementById('kpiAvg').textContent = avgScore.toFixed(1);
+      document.getElementById('kpiAvgSub').textContent = total
+        ? 'sobre 15 · ' + Math.round((avgScore / 15) * 100) + '% acierto'
+        : 'sobre 15';
+
+      document.getElementById('kpiDur').textContent = passMin + ':' + String(passSec).padStart(2, '0');
+    }
+
+    function renderDepartments() {
+      const grid = document.getElementById('deptGrid');
+      const subtitle = document.getElementById('deptSubtitle');
+
+      if (!rows.length) {
+        grid.innerHTML = '';
+        subtitle.textContent = '';
+        return;
+      }
+
+      const byDept = {};
+      rows.forEach(r => {
+        const d = r.departamento || 'Sin departamento';
+        if (!byDept[d]) byDept[d] = { total: 0, sumScore: 0, passed: 0 };
+        byDept[d].total++;
+        byDept[d].sumScore += r.puntuacion || 0;
+        if (r.aprobado) byDept[d].passed++;
+      });
+
+      const depts = Object.entries(byDept)
+        .map(([name, d]) => ({
+          name, total: d.total,
+          avg: d.sumScore / d.total,
+          passPct: Math.round((d.passed / d.total) * 100)
+        }))
+        .sort((a, b) => b.avg - a.avg);
+
+      subtitle.textContent = depts.length + ' departamento' + (depts.length !== 1 ? 's' : '');
+
+      grid.innerHTML = depts.map(d => {
+        const pct = (d.avg / 15) * 100;
+        return '<div class="dept-card">' +
+          '<div class="name">' + escapeHtml(d.name) + '</div>' +
+          '<div class="metrics">' +
+            '<span class="avg">' + d.avg.toFixed(1) + '<span style="font-size:0.8rem;opacity:0.5">/15</span></span>' +
+            '<span class="count">' + d.total + ' pax · ' + d.passPct + '% aprob.</span>' +
+          '</div>' +
+          '<div class="bar-bg"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderTable() {
+      const wrap = document.getElementById('tableWrap');
+      const subtitle = document.getElementById('tableSubtitle');
+
+      if (!rows.length) {
+        subtitle.textContent = '';
+        wrap.innerHTML = '<div class="empty"><div class="icon">&#x1F4ED;</div><h3>Sin resultados todavía</h3><p>Aún no se ha completado ningún examen.</p></div>';
+        return;
+      }
+
+      subtitle.textContent = rows.length + ' registro' + (rows.length !== 1 ? 's' : '');
+
+      const headerQs = QUESTIONS.map(q =>
+        '<th class="q-col" title="' + escapeAttr(q.short) + '">P' + q.id + '</th>'
+      ).join('');
+
+      const rowsHtml = rows.map(r => {
+        const respuestas = r.respuestas || {};
+        const qCells = QUESTIONS.map(q => {
+          const userAns = respuestas[q.id] || respuestas[String(q.id)];
+          if (!userAns) return '<td class="q-cell"><span class="q-na" title="Sin respuesta">—</span></td>';
+          const ok = userAns === q.correct;
+          const symbol = ok ? '✓' : '✗';
+          const cls = ok ? 'q-ok' : 'q-ko';
+          const tip = 'Respondió: ' + userAns + ' · Correcta: ' + q.correct;
+          return '<td class="q-cell"><span class="' + cls + '" title="' + tip + '">' + symbol + '</span></td>';
+        }).join('');
+
+        const scoreCls = r.aprobado ? 'pass' : 'fail';
+        const statusCls = r.aprobado ? 'pass' : 'fail';
+        const statusTxt = r.aprobado ? 'Aprobado' : 'Suspenso';
+
+        return '<tr>' +
+          '<td class="name-cell">' + escapeHtml(r.nombre || '—') + '</td>' +
+          '<td>' + (r.departamento ? '<span class="dept-chip">' + escapeHtml(r.departamento) + '</span>' : '<span style="color:var(--muted)">—</span>') + '</td>' +
+          qCells +
+          '<td class="score ' + scoreCls + '">' + (r.puntuacion ?? 0) + '/' + (r.total_preguntas || 15) + '</td>' +
+          '<td class="duration">' + formatDuration(r.tiempo_segundos) + '</td>' +
+          '<td><span class="status-badge ' + statusCls + '">' + statusTxt + '</span></td>' +
+        '</tr>';
+      }).join('');
+
+      wrap.innerHTML =
+        '<table>' +
+          '<thead><tr>' +
+            '<th>Nombre</th>' +
+            '<th>Departamento</th>' +
+            headerQs +
+            '<th style="text-align:center">Puntuación</th>' +
+            '<th>Duración</th>' +
+            '<th>Estado</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rowsHtml + '</tbody>' +
+        '</table>';
+    }
+
+    /* EXPORT CSV */
+    function exportCSV() {
+      if (!rows.length) { alert('No hay datos para exportar.'); return; }
+
+      const headers = ['Nombre', 'Departamento'];
+      QUESTIONS.forEach(q => headers.push('P' + q.id + ' (resp)'));
+      QUESTIONS.forEach(q => headers.push('P' + q.id + ' (ok)'));
+      headers.push('Puntuacion', 'Total', 'Porcentaje', 'Duracion_seg', 'Duracion_min', 'Estado', 'Fecha');
+
+      const lines = [headers.join(';')];
+
+      rows.forEach(r => {
+        const resp = r.respuestas || {};
+        const cols = [csv(r.nombre), csv(r.departamento)];
+        // Respuestas
+        QUESTIONS.forEach(q => {
+          const a = resp[q.id] || resp[String(q.id)] || '';
+          cols.push(a);
+        });
+        // OK/KO
+        QUESTIONS.forEach(q => {
+          const a = resp[q.id] || resp[String(q.id)] || '';
+          cols.push(a === q.correct ? 'OK' : (a ? 'KO' : 'NA'));
+        });
+        const pct = r.total_preguntas ? Math.round((r.puntuacion / r.total_preguntas) * 100) : 0;
+        cols.push(
+          r.puntuacion ?? 0,
+          r.total_preguntas || 15,
+          pct + '%',
+          r.tiempo_segundos ?? '',
+          formatDuration(r.tiempo_segundos),
+          r.aprobado ? 'Aprobado' : 'Suspenso',
+          r.created_at ? new Date(r.created_at).toLocaleString('es-ES') : ''
+        );
+        lines.push(cols.join(';'));
+      });
+
+      const bom = '\uFEFF';
+      const blob = new Blob([bom + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = 'informe-examen-pys-' + ts + '.csv';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    function csv(v) {
+      if (v == null) return '';
+      const s = String(v);
+      if (s.includes(';') || s.includes('"') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s);
+    }
+  </script>
+
+</body>
+</html>
