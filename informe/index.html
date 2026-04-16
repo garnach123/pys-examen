@@ -166,6 +166,54 @@
     .status-badge.fail { background: rgba(239,68,68,0.12); color: var(--red); }
     .name-cell { font-weight: 600; }
 
+    /* FILTERS BAR */
+    .filters {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 14px 16px; margin-bottom: 22px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); backdrop-filter: blur(12px);
+    }
+    .filters .label {
+      font-size: 0.78rem; color: var(--muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-right: 2px;
+    }
+    .filters input[type="date"] {
+      padding: 7px 10px; border-radius: 7px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.85rem; outline: none;
+      font-family: inherit; color-scheme: dark;
+      min-width: 140px;
+    }
+    .filters input[type="date"]:focus {
+      border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+    .filters .sep {
+      color: var(--muted); font-size: 0.85rem; margin: 0 -2px;
+    }
+    .preset-btn {
+      padding: 6px 12px; border-radius: 6px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      color: var(--text2); font-size: 0.8rem; cursor: pointer;
+      font-weight: 500; transition: all 0.15s; font-family: inherit;
+    }
+    .preset-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+    .preset-btn.active {
+      background: rgba(201,169,110,0.15); border-color: rgba(201,169,110,0.4);
+      color: var(--gold-light);
+    }
+    .filters .counter {
+      margin-left: auto; font-size: 0.85rem; color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .filters .counter strong { color: var(--gold-light); font-weight: 700; }
+    .filters .clear-btn {
+      padding: 6px 10px; border-radius: 6px;
+      background: transparent; border: 1px solid rgba(239,68,68,0.25);
+      color: var(--red); font-size: 0.78rem; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .filters .clear-btn:hover { background: rgba(239,68,68,0.08); }
+
     /* EMPTY */
     .empty {
       text-align: center; padding: 60px 20px; color: var(--muted);
@@ -221,7 +269,7 @@
     /* PRINT */
     @media print {
       body { background: white; color: black; }
-      .topbar, .no-print { display: none !important; }
+      .topbar, .no-print, .filters { display: none !important; }
       .content { max-width: 100%; padding: 0; }
       .stat-card, .dept-card, .table-wrap {
         background: white !important; border: 1px solid #ccc !important;
@@ -276,6 +324,20 @@
 
     <div class="content">
       <div class="report-date" id="reportDate"></div>
+
+      <!-- FILTERS -->
+      <div class="filters" id="filtersBar">
+        <span class="label">Rango:</span>
+        <input type="date" id="dateFrom" onchange="onFilterChange()">
+        <span class="sep">→</span>
+        <input type="date" id="dateTo" onchange="onFilterChange()">
+        <button class="preset-btn" data-preset="all" onclick="applyPreset('all')">Todos</button>
+        <button class="preset-btn" data-preset="today" onclick="applyPreset('today')">Hoy</button>
+        <button class="preset-btn" data-preset="7d" onclick="applyPreset('7d')">Últimos 7 días</button>
+        <button class="preset-btn" data-preset="month" onclick="applyPreset('month')">Este mes</button>
+        <button class="clear-btn" onclick="clearFilters()">Limpiar</button>
+        <span class="counter" id="filterCounter"></span>
+      </div>
 
       <!-- KPI CARDS -->
       <div class="stats-grid" id="statsGrid">
@@ -355,6 +417,8 @@
     const client = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let rows = [];
+    let filteredRows = [];
+    let activePreset = 'all';
 
     /* LOGIN */
     function doLogin() {
@@ -376,6 +440,7 @@
     function showDashboard() {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboard').classList.add('active');
+      updatePresetButtons();
       loadData();
     }
 
@@ -415,9 +480,83 @@
 
         if (error) throw error;
         rows = data || [];
-        render();
+        applyFilter();
       } catch (e) {
         wrap.innerHTML = '<div class="empty"><div class="icon">&#x26A0;</div><h3>Error al cargar datos</h3><p>' + (e.message || 'Error de conexión') + '</p></div>';
+      }
+    }
+
+    /* FILTERING */
+    function applyFilter() {
+      const fromVal = document.getElementById('dateFrom').value;
+      const toVal = document.getElementById('dateTo').value;
+
+      let from = null, to = null;
+      if (fromVal) {
+        from = new Date(fromVal + 'T00:00:00');
+      }
+      if (toVal) {
+        to = new Date(toVal + 'T23:59:59.999');
+      }
+
+      filteredRows = rows.filter(r => {
+        if (!r.created_at) return !from && !to;
+        const d = new Date(r.created_at);
+        if (from && d < from) return false;
+        if (to && d > to) return false;
+        return true;
+      });
+
+      updateCounter();
+      render();
+    }
+
+    function onFilterChange() {
+      // Usuario editó manualmente las fechas → preset pasa a "personalizado"
+      activePreset = 'custom';
+      updatePresetButtons();
+      applyFilter();
+    }
+
+    function applyPreset(preset) {
+      const from = document.getElementById('dateFrom');
+      const to = document.getElementById('dateTo');
+      const now = new Date();
+      const iso = d => d.toISOString().slice(0, 10);
+
+      if (preset === 'all') {
+        from.value = ''; to.value = '';
+      } else if (preset === 'today') {
+        const t = iso(now);
+        from.value = t; to.value = t;
+      } else if (preset === '7d') {
+        const d7 = new Date(now); d7.setDate(d7.getDate() - 6);
+        from.value = iso(d7); to.value = iso(now);
+      } else if (preset === 'month') {
+        const first = new Date(now.getFullYear(), now.getMonth(), 1);
+        from.value = iso(first); to.value = iso(now);
+      }
+      activePreset = preset;
+      updatePresetButtons();
+      applyFilter();
+    }
+
+    function clearFilters() {
+      applyPreset('all');
+    }
+
+    function updatePresetButtons() {
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.preset === activePreset);
+      });
+    }
+
+    function updateCounter() {
+      const c = document.getElementById('filterCounter');
+      if (rows.length === filteredRows.length) {
+        c.innerHTML = '<strong>' + filteredRows.length + '</strong> registro' + (filteredRows.length !== 1 ? 's' : '');
+      } else {
+        c.innerHTML = '<strong>' + filteredRows.length + '</strong> de ' + rows.length + ' registros';
       }
     }
 
@@ -429,12 +568,12 @@
     }
 
     function renderKPIs() {
-      const total = rows.length;
-      const passed = rows.filter(r => r.aprobado).length;
+      const total = filteredRows.length;
+      const passed = filteredRows.filter(r => r.aprobado).length;
       const failed = total - passed;
-      const avgScore = total ? rows.reduce((s, r) => s + (r.puntuacion || 0), 0) / total : 0;
+      const avgScore = total ? filteredRows.reduce((s, r) => s + (r.puntuacion || 0), 0) / total : 0;
       const avgDur = total
-        ? rows.reduce((s, r) => s + (r.tiempo_segundos || 0), 0) / total
+        ? filteredRows.reduce((s, r) => s + (r.tiempo_segundos || 0), 0) / total
         : 0;
       const passPct = total ? Math.round((passed / total) * 100) : 0;
       const passMin = Math.floor(avgDur / 60);
@@ -460,14 +599,14 @@
       const grid = document.getElementById('deptGrid');
       const subtitle = document.getElementById('deptSubtitle');
 
-      if (!rows.length) {
+      if (!filteredRows.length) {
         grid.innerHTML = '';
         subtitle.textContent = '';
         return;
       }
 
       const byDept = {};
-      rows.forEach(r => {
+      filteredRows.forEach(r => {
         const d = r.departamento || 'Sin departamento';
         if (!byDept[d]) byDept[d] = { total: 0, sumScore: 0, passed: 0 };
         byDept[d].total++;
@@ -502,19 +641,23 @@
       const wrap = document.getElementById('tableWrap');
       const subtitle = document.getElementById('tableSubtitle');
 
-      if (!rows.length) {
+      if (!filteredRows.length) {
         subtitle.textContent = '';
-        wrap.innerHTML = '<div class="empty"><div class="icon">&#x1F4ED;</div><h3>Sin resultados todavía</h3><p>Aún no se ha completado ningún examen.</p></div>';
+        if (rows.length) {
+          wrap.innerHTML = '<div class="empty"><div class="icon">&#x1F50D;</div><h3>Sin resultados en este rango</h3><p>Prueba a ampliar el rango de fechas o pulsa "Limpiar".</p></div>';
+        } else {
+          wrap.innerHTML = '<div class="empty"><div class="icon">&#x1F4ED;</div><h3>Sin resultados todavía</h3><p>Aún no se ha completado ningún examen.</p></div>';
+        }
         return;
       }
 
-      subtitle.textContent = rows.length + ' registro' + (rows.length !== 1 ? 's' : '');
+      subtitle.textContent = filteredRows.length + ' registro' + (filteredRows.length !== 1 ? 's' : '');
 
       const headerQs = QUESTIONS.map(q =>
         '<th class="q-col" title="' + escapeAttr(q.short) + '">P' + q.id + '</th>'
       ).join('');
 
-      const rowsHtml = rows.map(r => {
+      const rowsHtml = filteredRows.map(r => {
         const respuestas = r.respuestas || {};
         const qCells = QUESTIONS.map(q => {
           const userAns = respuestas[q.id] || respuestas[String(q.id)];
@@ -530,7 +673,11 @@
         const statusCls = r.aprobado ? 'pass' : 'fail';
         const statusTxt = r.aprobado ? 'Aprobado' : 'Suspenso';
 
+        const fecha = r.created_at ? new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '—';
+        const hora = r.created_at ? new Date(r.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
+
         return '<tr>' +
+          '<td class="duration" style="white-space:nowrap">' + fecha + (hora ? ' <span style="color:var(--muted);font-size:0.78rem">' + hora + '</span>' : '') + '</td>' +
           '<td class="name-cell">' + escapeHtml(r.nombre || '—') + '</td>' +
           '<td>' + (r.departamento ? '<span class="dept-chip">' + escapeHtml(r.departamento) + '</span>' : '<span style="color:var(--muted)">—</span>') + '</td>' +
           qCells +
@@ -543,6 +690,7 @@
       wrap.innerHTML =
         '<table>' +
           '<thead><tr>' +
+            '<th>Fecha</th>' +
             '<th>Nombre</th>' +
             '<th>Departamento</th>' +
             headerQs +
@@ -556,18 +704,20 @@
 
     /* EXPORT CSV */
     function exportCSV() {
-      if (!rows.length) { alert('No hay datos para exportar.'); return; }
+      const exportRows = filteredRows;
+      if (!exportRows.length) { alert('No hay datos para exportar en el rango seleccionado.'); return; }
 
-      const headers = ['Nombre', 'Departamento'];
+      const headers = ['Fecha', 'Nombre', 'Departamento'];
       QUESTIONS.forEach(q => headers.push('P' + q.id + ' (resp)'));
       QUESTIONS.forEach(q => headers.push('P' + q.id + ' (ok)'));
-      headers.push('Puntuacion', 'Total', 'Porcentaje', 'Duracion_seg', 'Duracion_min', 'Estado', 'Fecha');
+      headers.push('Puntuacion', 'Total', 'Porcentaje', 'Duracion_seg', 'Duracion_min', 'Estado');
 
       const lines = [headers.join(';')];
 
-      rows.forEach(r => {
+      exportRows.forEach(r => {
         const resp = r.respuestas || {};
-        const cols = [csv(r.nombre), csv(r.departamento)];
+        const fechaStr = r.created_at ? new Date(r.created_at).toLocaleString('es-ES') : '';
+        const cols = [csv(fechaStr), csv(r.nombre), csv(r.departamento)];
         // Respuestas
         QUESTIONS.forEach(q => {
           const a = resp[q.id] || resp[String(q.id)] || '';
@@ -585,8 +735,7 @@
           pct + '%',
           r.tiempo_segundos ?? '',
           formatDuration(r.tiempo_segundos),
-          r.aprobado ? 'Aprobado' : 'Suspenso',
-          r.created_at ? new Date(r.created_at).toLocaleString('es-ES') : ''
+          r.aprobado ? 'Aprobado' : 'Suspenso'
         );
         lines.push(cols.join(';'));
       });
